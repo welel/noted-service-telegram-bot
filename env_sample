@@ -1,5 +1,6 @@
 # Fill following data and rename the file to `.env`
 TELEGRAM_TOKEN=
+TELEGRAM_CHAT_ID=
 
 GITHUB_TOKEN=
 REPO_OWNER=
