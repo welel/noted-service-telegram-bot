@@ -9,10 +9,10 @@ def format_commit(commit: dict, nn: int = None) -> str:
         <b>SHA</b>: 57d968d84591e1514d8b40f326e934602df39133
 
     Attrs:
-        commit: json form of a commit.
-        nn: serial number of a commit (optional).
+        commit: a json representation of the commit.
+        nn: a serial number of the commit (optional).
     Returns:
-        Formatted string of a comment.
+        A formatted string of a commit.
     """
     output = f"<b>{nn}</b>. " if nn else ""
     output += "{comment}\n<b>SHA</b>: {sha}".format(

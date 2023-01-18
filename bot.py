@@ -12,6 +12,7 @@ from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID as CHAT_ID
 from formatters import format_commit
 from github import get_commits, create_issue as create_issue_api
 from jenkins import build_noted_pipeline, build_stub_off
+from callback import form_callback_query, get_data
 
 
 TEXT_MESSAGES = {
@@ -97,10 +98,9 @@ def display_commits(message):
     for i, commit in enumerate(commits):
         commit_msg = format_commit(commit, nn=i + 1)
         kb = types.InlineKeyboardMarkup(row_width=2)
+        cb_data = form_callback_query("build_commit", commit["sha"])
         kb.add(
-            types.InlineKeyboardButton(
-                text="Build", callback_data="build_commit$%^" + commit["sha"]
-            ),
+            types.InlineKeyboardButton(text="Build", callback_data=cb_data),
             types.InlineKeyboardButton(text="Details", url=commit["url"]),
         )
         bot.send_message(
@@ -108,16 +108,14 @@ def display_commits(message):
         )
 
 
-@bot.callback_query_handler(
-    func=lambda cb: cb.data.split("$%^")[0] == "build_commit"
-)
+@bot.callback_query_handler(func=lambda cb: cb.data.startswith("build_commit"))
 def build_commit_handler(callback):
     """Handles the `Build` button of a comment, starts the Jenkins job.
 
     If a `Build` button was pressed starts the Jenkins job that builds
     the provided commit to the prodaction.
     """
-    commit_hash = callback.data.split("$%^")[1]
+    commit_hash = get_data(callback.data)
     result = build_noted_pipeline(commit_hash)
     if result == "build":
         bot.send_message(CHAT_ID, f"Build for {commit_hash} has requested.")

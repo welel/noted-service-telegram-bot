@@ -44,7 +44,9 @@ def get_commits(num: int = 3) -> Optional[List[dict]]:
     return commits
 
 
-def create_issue(title: str, body: str = None, labels: list = None) -> str:
+def create_issue(
+    title: str, body: str = None, labels: list = None
+) -> Optional[str]:
     """Makes API call to create new issue.
 
     Attrs:
