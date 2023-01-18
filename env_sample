@@ -1,0 +1,6 @@
+# Fill following data and rename the file to `.env`
+TELEGRAM_TOKEN=
+
+GITHUB_TOKEN=
+REPO_OWNER=
+REPO_NAME=
