@@ -14,7 +14,7 @@ HEADERS = {
 LIST_COMMITS_API_URL = "https://api.github.com/repos/{owner}/{repo}/commits"
 
 
-def get_commits(num: int = 5) -> Optional[List[dict]]:
+def get_commits(num: int = 3) -> Optional[List[dict]]:
     """Makes API call to get last commits of a repository.
 
     Attrs:
