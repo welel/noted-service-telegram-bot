@@ -4,20 +4,27 @@ The bot sends all messages to specific chat to make them secure.
 """
 import functools
 import os
+import requests
 
 import telebot
 from telebot import types
 
-from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID as CHAT_ID
+from config import (
+    TELEGRAM_TOKEN,
+    TELEGRAM_CHAT_ID as CHAT_ID,
+    NOTED_JOB,
+    STUB_OFF_JOB,
+    NOTED_TEST_JOB,
+)
 from formatters import format_commit
 from github import get_commits, create_issue as create_issue_api
-from jenkins import build_noted_pipeline, build_stub_off
+from jenkins import build_job
 from callback import form_callback_query, get_data
 
 
 TEXT_MESSAGES = {
     "welcome": str(
-        "Welcome to NoteD Service Bot!\n\n"
+        "Welcome to the NoteD Service Bot!\n\n"
         "The telegram bot provides the NoteD developer team with services "
         + "to help them manage developing processes and get developing "
         + "information. Provides requests to GitHub and Jenkins."
@@ -25,13 +32,16 @@ TEXT_MESSAGES = {
     "help": str(
         "I am a service bot for the NoteD team.\n\n"
         "I can help with:\n"
-        "1. List last commits and build them to prodaction.\n"
+        "1. List last commits\n"
+        "    - build them to the prodaction.\n"
+        "    - test them before the prodaction.\n"
         "2. Create issues to the project.\n"
         "3. Set off the stub of the website.\n\n"
         "Commands:\n"
         "/commits - Display last 3 commits\n"
         "/issue - Create an issue\n"
         "/stuboff - Set the stub off\n"
+        "/ping - Ping the website"
         "/help - Bot information"
     ),
     "wrong_chat": str(
@@ -80,6 +90,13 @@ def welcome(message):
         bot.send_message(message.chat.id, TEXT_MESSAGES["wrong_chat"])
 
 
+@bot.message_handler(commands=["ping"])
+@check_group_chat
+def ping_website(message):
+    res = requests.get("https://welel-noted.site")
+    bot.send_message(message.chat.id, "Status code: " + str(res.status_code))
+
+
 @bot.message_handler(commands=["commits"])
 @check_group_chat
 def display_commits(message):
@@ -87,8 +104,9 @@ def display_commits(message):
 
     Displays commit information - comment, hash.
     Buttons:
-        1. Url to the GitHub commit.
-        2. Starts a Jenkins job to build this commit in the prodaction.
+        1. Starts a Jenkins job to build this commit in the prodaction.
+        2. Starts a Jenkins job to test the project.
+        3. Url to the GitHub commit.
     """
     try:
         commits = get_commits()
@@ -98,9 +116,11 @@ def display_commits(message):
     for i, commit in enumerate(commits):
         commit_msg = format_commit(commit, nn=i + 1)
         kb = types.InlineKeyboardMarkup(row_width=2)
-        cb_data = form_callback_query("build_commit", commit["sha"])
+        data_build = form_callback_query("build_commit", commit["sha"])
+        data_test = form_callback_query("build_test", commit["sha"])
         kb.add(
-            types.InlineKeyboardButton(text="Build", callback_data=cb_data),
+            types.InlineKeyboardButton(text="Build", callback_data=data_build),
+            types.InlineKeyboardButton(text="Test", callback_data=data_test),
             types.InlineKeyboardButton(text="Details", url=commit["url"]),
         )
         bot.send_message(
@@ -110,15 +130,30 @@ def display_commits(message):
 
 @bot.callback_query_handler(func=lambda cb: cb.data.startswith("build_commit"))
 def build_commit_handler(callback):
-    """Handles the `Build` button of a comment, starts the Jenkins job.
+    """Handles the `Build` button of a commit, starts the Jenkins job.
 
     If a `Build` button was pressed starts the Jenkins job that builds
     the provided commit to the prodaction.
     """
     commit_hash = get_data(callback.data)
-    result = build_noted_pipeline(commit_hash)
+    result = build_job(NOTED_JOB, COMMIT_HASH=commit_hash)
     if result == "build":
         bot.send_message(CHAT_ID, f"Build for {commit_hash} has requested.")
+    elif result == "building":
+        bot.send_message(CHAT_ID, "The job is currently building.")
+
+
+@bot.callback_query_handler(func=lambda cb: cb.data.startswith("build_test"))
+def build_test_handler(callback):
+    """Handles the `Test` button of a commtt, starts the Jenkins job.
+
+    If a `Test` button was pressed starts the Jenkins job that tests
+    the provided commit for the prodaction.
+    """
+    commit_hash = get_data(callback.data)
+    result = build_job(commit_hash)
+    if result == "build":
+        bot.send_message(CHAT_ID, f"Tests for {commit_hash} has requested.")
     elif result == "building":
         bot.send_message(CHAT_ID, "The job is currently building.")
 
@@ -192,7 +227,7 @@ def process_issue_label_step(message, title, body):
 @check_group_chat
 def stub_off(message):
     """Starts a jenkins job to set off a webite stub."""
-    result = build_stub_off()
+    result = build_job(STUB_OFF_JOB)
     if result == "build":
         bot.send_message(
             message.chat.id, f"Build for setting stub off has requested."

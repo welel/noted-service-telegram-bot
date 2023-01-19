@@ -1,40 +1,35 @@
+import os
+
 from api4jenkins import Jenkins
 
-from config import (
-    JENKINS_HOST,
-    JENKINS_PASSWORD,
-    JENKINS_USERNAME,
-    NOTED_JOB,
-    STUB_OFF_JOB,
-)
+from config import JENKINS_HOST, JENKINS_PASSWORD, JENKINS_USERNAME
+
+
+if (
+    "JENKINS_HOST" not in os.environ
+    or "JENKINS_PASSWORD" not in os.environ
+    or "JENKINS_USERNAME" not in os.environ
+):
+    raise AssertionError(
+        "Please configure JENKINS_HOST, JENKINS_PASSWORD and JENKINS_USERNAME \
+            as environment variables"
+    )
 
 
 jenkins = Jenkins(JENKINS_HOST, auth=(JENKINS_USERNAME, JENKINS_PASSWORD))
 
 
-def build_noted_pipeline(commit_hash: str) -> str:
-    """Makes request to Jenkins on build the pipline with website deploying.
+def build_job(job: str, **kwargs):
+    """Makes request to Jenkins on build the job.
 
     Attrs:
-        commit_hash: a hash of commit which to build.
+        job: a job path.
+        kwargs: a job parameters.
     Returns:
         Status information.
     """
-    job = jenkins.get_job(NOTED_JOB)
+    job = jenkins.get_job(job)
     if job.building:
         return "building"
-    job.build(COMMIT_HASH=commit_hash)
-    return "build"
-
-
-def build_stub_off() -> str:
-    """Makes request to Jenkins on build the job to set off a website stub.
-
-    Returns:
-        Status information.
-    """
-    job = jenkins.get_job(STUB_OFF_JOB)
-    if job.building:
-        return "building"
-    job.build()
+    job.build(**kwargs)
     return "build"

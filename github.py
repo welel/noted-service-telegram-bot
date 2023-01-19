@@ -1,9 +1,22 @@
 """A module for making requests to GITHUB API."""
+import os
+
 import requests
 import json
 from typing import Optional, List
 
 from config import GITHUB_TOKEN, REPO_OWNER, REPO_NAME
+
+
+if (
+    "GITHUB_TOKEN" not in os.environ
+    or "REPO_OWNER" not in os.environ
+    or "REPO_NAME" not in os.environ
+):
+    raise AssertionError(
+        "Please configure GITHUB_TOKEN, REPO_OWNER and REPO_NAME as \
+            environment variables"
+    )
 
 
 HEADERS = {

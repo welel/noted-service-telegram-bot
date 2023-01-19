@@ -18,5 +18,9 @@ REPO_NAME = os.getenv("REPO_NAME")
 JENKINS_HOST = os.getenv("JENKINS_HOST")
 JENKINS_USERNAME = os.getenv("JENKINS_USERNAME")
 JENKINS_PASSWORD = os.getenv("JENKINS_PASSWORD")
+# A pipline for deploying the website ot the prodaction.
 NOTED_JOB = os.getenv("NOTED_JOB")
+# A pipline with Docker, Django, HTTP, PostgreSQL tests.
+NOTED_TEST_JOB = os.getenv("NOTED_TEST_JOB")
+# A job to set off a website stub.
 STUB_OFF_JOB = os.getenv("STUB_OFF_JOB")
