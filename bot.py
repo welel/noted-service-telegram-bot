@@ -1,6 +1,28 @@
-"""This is a service bot for the developer team of the NoteD website.
+"""This module contains a telegram bot for the NoteD developer team.
 
-The bot sends all messages to specific chat to make them secure.  
+The bot provides services to help the team manage developing processes
+and get developing information. It provides requests to GitHub and Jenkins.
+
+The bot can help with: 
+1. List last commits, build them to the prodaction, test them before the prodaction. 
+2. Create issues to the project. 
+3. Set off the stub of the website. 
+4. And just talk heart to heart (chatbot). 
+
+Commands: 
+/commits - Display last 3 commits 
+/issue - Create an issue 
+/stuboff - Set the stub off 
+/ping - Ping the website 
+/c - [chat] Speak with AI 
+/help - Bot information  
+
+The bot uses:
+    `telebot` library for creating a Telegram Bot,
+    `requests` library for requests to GitHub API,
+    `api4jenkins` library for requests to Jenkins API,
+    `openai` library for AI chatbot.  
+
 """
 import functools
 import os
@@ -8,7 +30,9 @@ import requests
 
 import telebot
 from telebot import types
+from telebot.util import extract_arguments
 
+from aichat import get_answer
 from config import (
     TELEGRAM_TOKEN,
     TELEGRAM_CHAT_ID as CHAT_ID,
@@ -37,11 +61,13 @@ TEXT_MESSAGES = {
         "    - test them before the prodaction.\n"
         "2. Create issues to the project.\n"
         "3. Set off the stub of the website.\n\n"
+        "4. And just talk heart to heart.\n"
         "Commands:\n"
         "/commits - Display last 3 commits\n"
         "/issue - Create an issue\n"
         "/stuboff - Set the stub off\n"
-        "/ping - Ping the website"
+        "/ping - Ping the website\n"
+        "/c - [chat] Speak with AI\n"
         "/help - Bot information"
     ),
     "wrong_chat": str(
@@ -93,6 +119,7 @@ def welcome(message):
 @bot.message_handler(commands=["ping"])
 @check_group_chat
 def ping_website(message):
+    """Checks the status code of the NoteD website."""
     res = requests.get("https://welel-noted.site")
     bot.send_message(message.chat.id, "Status code: " + str(res.status_code))
 
@@ -151,7 +178,7 @@ def build_test_handler(callback):
     the provided commit for the prodaction.
     """
     commit_hash = get_data(callback.data)
-    result = build_job(commit_hash)
+    result = build_job(NOTED_TEST_JOB, COMMIT_HASH=commit_hash)
     if result == "build":
         bot.send_message(CHAT_ID, f"Tests for {commit_hash} has requested.")
     elif result == "building":
@@ -234,6 +261,14 @@ def stub_off(message):
         )
     elif result == "building":
         bot.send_message(message.chat.id, "The job is currently building.")
+
+
+# c: 1 - in EN, 2 - in RU [short from chat]
+@bot.message_handler(commands=["c", "с"])
+def chatbot(message):
+    text = extract_arguments(message.text)
+    ai_answer = get_answer(text)
+    bot.send_message(message.chat.id, ai_answer)
 
 
 @bot.message_handler(commands=["help"])

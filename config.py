@@ -1,4 +1,8 @@
-"""Settings for the bot."""
+"""This module contains environment variables used in the Noted project.
+
+The module uses the dotenv library to parse a `.env` file and load the
+variables inside into environment variables.
+"""
 import os
 
 from dotenv import load_dotenv
@@ -24,3 +28,5 @@ NOTED_JOB = os.getenv("NOTED_JOB")
 NOTED_TEST_JOB = os.getenv("NOTED_TEST_JOB")
 # A job to set off a website stub.
 STUB_OFF_JOB = os.getenv("STUB_OFF_JOB")
+
+OPENAI_KEY = os.getenv("OPENAI_KEY")

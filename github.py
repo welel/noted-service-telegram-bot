@@ -1,4 +1,9 @@
-"""A module for making requests to GITHUB API."""
+"""This module provides functions for making requests to the GitHub API.
+
+The module requires that the `GITHUB_TOKEN`, `REPO_OWNER` and `REPO_NAME`
+environment variables are set. If these variables are not set, an
+AssertionError will be raised.
+"""
 import os
 
 import requests
@@ -32,8 +37,9 @@ CREATE_ISSUE_API_URL = "https://api.github.com/repos/{owner}/{repo}/issues"
 def get_commits(num: int = 3) -> Optional[List[dict]]:
     """Makes API call to get last commits of a repository.
 
-    Attrs:
+    Args:
         num: number of commits.
+
     Returns:
         list: return list of dicts with commit info
               (keys - "sha", "comment", "url")
@@ -62,10 +68,11 @@ def create_issue(
 ) -> Optional[str]:
     """Makes API call to create new issue.
 
-    Attrs:
+    Args:
         title: a title of an issue.
         body: a text for an issue.
         labels: a list with tags (labels) for an issue.
+
     Returns:
         A url to the issue.
     """

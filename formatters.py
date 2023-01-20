@@ -8,9 +8,10 @@ def format_commit(commit: dict, nn: int = None) -> str:
         [<b>1.</b> ] fix: fixed bugs with icons.
         <b>SHA</b>: 57d968d84591e1514d8b40f326e934602df39133
 
-    Attrs:
+    Args:
         commit: a json representation of the commit.
         nn: a serial number of the commit (optional).
+
     Returns:
         A formatted string of a commit.
     """
