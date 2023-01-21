@@ -67,7 +67,7 @@ TEXT_MESSAGES = {
         "/issue - Create an issue\n"
         "/stuboff - Set the stub off\n"
         "/ping - Ping the website\n"
-        "/c - [chat] Speak with AI\n"
+        "/c - [/chat] Speak to AI\n"
         "/help - Bot information"
     ),
     "wrong_chat": str(
@@ -215,7 +215,7 @@ def process_issue_body_step(message, title):
     kb = types.ReplyKeyboardMarkup(
         one_time_keyboard=True, resize_keyboard=True
     )
-    kb.add("Bug", "Feat", "Check", "Skip")
+    kb.add("bug", "feat", "docs", "refactor", "devops", "check", "Skip")
     sent_msg = bot.send_message(
         CHAT_ID,
         "Choose the issue label...",
@@ -264,7 +264,8 @@ def stub_off(message):
 
 
 # c: 1 - in EN, 2 - in RU [short from chat]
-@bot.message_handler(commands=["c", "с"])
+@bot.message_handler(commands=["c", "с", "chat"])
+@check_group_chat
 def chatbot(message):
     text = extract_arguments(message.text)
     ai_answer = get_answer(text)
