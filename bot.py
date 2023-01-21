@@ -36,9 +36,9 @@ from aichat import get_answer
 from config import (
     TELEGRAM_TOKEN,
     TELEGRAM_CHAT_ID as CHAT_ID,
-    NOTED_JOB,
+    CI_JOB,
+    CD_JOB,
     STUB_OFF_JOB,
-    NOTED_TEST_JOB,
 )
 from formatters import format_commit
 from github import get_commits, create_issue as create_issue_api
@@ -60,8 +60,8 @@ TEXT_MESSAGES = {
         "    - build them to the prodaction.\n"
         "    - test them before the prodaction.\n"
         "2. Create issues to the project.\n"
-        "3. Set off the stub of the website.\n\n"
-        "4. And just talk heart to heart.\n"
+        "3. Set off the stub of the website.\n"
+        "4. And just talk heart to heart.\n\n"
         "Commands:\n"
         "/commits - Display last 3 commits\n"
         "/issue - Create an issue\n"
@@ -163,11 +163,9 @@ def build_commit_handler(callback):
     the provided commit to the prodaction.
     """
     commit_hash = get_data(callback.data)
-    result = build_job(NOTED_JOB, COMMIT_HASH=commit_hash)
-    if result == "build":
-        bot.send_message(CHAT_ID, f"Build for {commit_hash} has requested.")
-    elif result == "building":
-        bot.send_message(CHAT_ID, "The job is currently building.")
+    msg = build_job(CD_JOB, COMMIT_HASH=commit_hash)
+    msg = f"Build for {commit_hash} has requested." if msg == "build" else msg
+    bot.send_message(CHAT_ID, msg)
 
 
 @bot.callback_query_handler(func=lambda cb: cb.data.startswith("build_test"))
@@ -178,11 +176,9 @@ def build_test_handler(callback):
     the provided commit for the prodaction.
     """
     commit_hash = get_data(callback.data)
-    result = build_job(NOTED_TEST_JOB, COMMIT_HASH=commit_hash)
-    if result == "build":
-        bot.send_message(CHAT_ID, f"Tests for {commit_hash} has requested.")
-    elif result == "building":
-        bot.send_message(CHAT_ID, "The job is currently building.")
+    msg = build_job(CI_JOB, COMMIT_HASH=commit_hash)
+    msg = f"Tests for {commit_hash} has requested." if msg == "build" else msg
+    bot.send_message(CHAT_ID, msg)
 
 
 @bot.message_handler(commands=["issue"])

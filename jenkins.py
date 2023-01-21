@@ -26,10 +26,12 @@ def build_job(job: str, **kwargs):
         job: a job path.
         kwargs: a job parameters.
     Returns:
-        Status information.
+        Status information or the error/info message.
     """
     job = jenkins.get_job(job)
+    if not job:
+        return "The given path is incorrect."
     if job.building:
-        return "building"
+        return "The job is currently building."
     job.build(**kwargs)
     return "build"
