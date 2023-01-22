@@ -16,6 +16,7 @@ The NoteD Service Telegram Bot provides the following features:
 ## Commands 
 
 The bot has several commands that can be used to access its features: 
+- `/commit` - Display last commit 
 - `/commits` - Display last 3 commits 
 - `/issue` - Create an issue 
 - `/stuboff` - Set the stub off 

@@ -28,5 +28,6 @@ CD_JOB = os.getenv("CD_JOB")
 CI_JOB = os.getenv("CI_JOB")
 # A job to set off a website stub.
 STUB_OFF_JOB = os.getenv("STUB_OFF_JOB")
+BLUE_OCEAN_DASHBOARD_PATH = os.getenv("BLUE_OCEAN_DASHBOARD_PATH")
 
 OPENAI_KEY = os.getenv("OPENAI_KEY")

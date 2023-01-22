@@ -10,7 +10,8 @@ The bot can help with:
 4. And just talk heart to heart (chatbot). 
 
 Commands: 
-/commits - Display last 3 commits 
+/commit - Display last commit
+/commits - Display last 3 commits
 /issue - Create an issue 
 /stuboff - Set the stub off 
 /ping - Ping the website 
@@ -39,6 +40,8 @@ from config import (
     CI_JOB,
     CD_JOB,
     STUB_OFF_JOB,
+    BLUE_OCEAN_DASHBOARD_PATH,
+    JENKINS_HOST,
 )
 from formatters import format_commit
 from github import get_commits, create_issue as create_issue_api
@@ -63,6 +66,7 @@ TEXT_MESSAGES = {
         "3. Set off the stub of the website.\n"
         "4. And just talk heart to heart.\n\n"
         "Commands:\n"
+        "/commit - Display last commit\n"
         "/commits - Display last 3 commits\n"
         "/issue - Create an issue\n"
         "/stuboff - Set the stub off\n"
@@ -120,23 +124,38 @@ def welcome(message):
 @check_group_chat
 def ping_website(message):
     """Checks the status code of the NoteD website."""
-    res = requests.get("https://welel-noted.site")
+    res = requests.get("https://welel-noted.site", timeout=5)
     bot.send_message(message.chat.id, "Status code: " + str(res.status_code))
+
+
+@bot.message_handler(commands=["commit"])
+@check_group_chat
+def display_commits(message):
+    """Display last commit with inline buttons for info and managment."""
+    display_commits_handler(message, number=1)
 
 
 @bot.message_handler(commands=["commits"])
 @check_group_chat
 def display_commits(message):
-    """Sends last 3 commits with inline buttons.
+    """Display last 3 commits with inline buttons for info and managment."""
+    display_commits_handler(message, number=3)
+
+
+def display_commits_handler(message, number: int = 1):
+    """Sends last commits with inline buttons.
 
     Displays commit information - comment, hash.
     Buttons:
         1. Starts a Jenkins job to build this commit in the prodaction.
         2. Starts a Jenkins job to test the project.
         3. Url to the GitHub commit.
+
+    Args:
+        number: a number of commits.
     """
     try:
-        commits = get_commits()
+        commits = get_commits(num=number)
     except Exception as error:
         bot.send_message(message.chat.id, "An error has occurred, try later.")
         print(error)
@@ -165,7 +184,10 @@ def build_commit_handler(callback):
     commit_hash = get_data(callback.data)
     msg = build_job(CD_JOB, COMMIT_HASH=commit_hash)
     msg = f"Build for {commit_hash} has requested." if msg == "build" else msg
-    bot.send_message(CHAT_ID, msg)
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    blue_ocean_url = JENKINS_HOST + BLUE_OCEAN_DASHBOARD_PATH
+    kb.add(types.InlineKeyboardButton(text="Blue Ocean", url=blue_ocean_url))
+    bot.send_message(CHAT_ID, msg, reply_markup=kb)
 
 
 @bot.callback_query_handler(func=lambda cb: cb.data.startswith("build_test"))
@@ -178,7 +200,10 @@ def build_test_handler(callback):
     commit_hash = get_data(callback.data)
     msg = build_job(CI_JOB, COMMIT_HASH=commit_hash)
     msg = f"Tests for {commit_hash} has requested." if msg == "build" else msg
-    bot.send_message(CHAT_ID, msg)
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    blue_ocean_url = JENKINS_HOST + BLUE_OCEAN_DASHBOARD_PATH
+    kb.add(types.InlineKeyboardButton(text="Blue Ocean", url=blue_ocean_url))
+    bot.send_message(CHAT_ID, msg, reply_markup=kb)
 
 
 @bot.message_handler(commands=["issue"])
