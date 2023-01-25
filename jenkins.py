@@ -16,7 +16,9 @@ if (
     )
 
 
-jenkins = Jenkins(JENKINS_HOST, auth=(JENKINS_USERNAME, JENKINS_PASSWORD))
+jenkins = Jenkins(
+    JENKINS_HOST, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), token=True
+)
 
 
 def build_job(job: str, **kwargs):
@@ -28,11 +30,6 @@ def build_job(job: str, **kwargs):
     Returns:
         Status information or the error/info message.
     """
-    global jenkins
-    if not jenkins.exists():
-        jenkins = Jenkins(
-            JENKINS_HOST, auth=(JENKINS_USERNAME, JENKINS_PASSWORD)
-        )
     job = jenkins.get_job(job)
     if not job:
         return "The given path is incorrect."

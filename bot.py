@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.8
 """This module contains a telegram bot for the NoteD developer team.
 
 The bot provides services to help the team manage developing processes
