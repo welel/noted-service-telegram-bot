@@ -26,8 +26,14 @@ JENKINS_PASSWORD = os.getenv("JENKINS_PASSWORD")
 CD_JOB = os.getenv("CD_JOB")
 # A pipline with Docker, Django, HTTP, PostgreSQL tests.
 CI_JOB = os.getenv("CI_JOB")
-# A job to set off a website stub.
-STUB_OFF_JOB = os.getenv("STUB_OFF_JOB")
 BLUE_OCEAN_DASHBOARD_PATH = os.getenv("BLUE_OCEAN_DASHBOARD_PATH")
 
 OPENAI_KEY = os.getenv("OPENAI_KEY")
+
+# Server information for `sinfo` command
+SERVER_INFO_1 = os.getenv("SERVER_INFO_1")
+SERVER_INFO_2 = os.getenv("SERVER_INFO_2")
+SERVER_INFO_3 = os.getenv("SERVER_INFO_3")
+SERVER_INFO_4 = os.getenv("SERVER_INFO_4")
+SERVER_INFO_5 = os.getenv("SERVER_INFO_5")
+SERVER_INFO_6 = os.getenv("SERVER_INFO_6")

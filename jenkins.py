@@ -1,6 +1,7 @@
 import os
 
-from api4jenkins import Jenkins
+from jenkinsapi.custom_exceptions import UnknownJob
+from jenkinsapi.jenkins import Jenkins
 
 from config import JENKINS_HOST, JENKINS_PASSWORD, JENKINS_USERNAME
 
@@ -17,7 +18,7 @@ if (
 
 
 jenkins = Jenkins(
-    JENKINS_HOST, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), token=True
+    JENKINS_HOST, username=JENKINS_USERNAME, password=JENKINS_PASSWORD
 )
 
 
@@ -30,10 +31,32 @@ def build_job(job: str, **kwargs):
     Returns:
         Status information or the error/info message.
     """
-    job = jenkins.get_job(job)
-    if not job:
-        return "The given path is incorrect."
-    if job.building:
-        return "The job is currently building."
-    job.build(**kwargs)
+    try:
+        job = jenkins[job]
+    except UnknownJob as error:
+        print(error)
+        return "Unknown job path."
+
+    if job.is_queued_or_running():
+        return "The job is currently building or queued."
+
+    try:
+        job.invoke(build_params={**kwargs})
+    except ValueError as error:
+        if not error.args[0].startswith("Not a Queue URL"):
+            raise
+
     return "build"
+
+
+def get_job_details():
+    """Get job details of each job that is running on the Jenkins instance"""
+    output = []
+    for _, job_instance in jenkins.get_jobs():
+        output.append(
+            "Job Name: %s\n" % job_instance.name
+            + "Job Description: %s\n" % (job_instance.get_description())
+            + "Is Job running: %s\n" % (job_instance.is_running())
+            + "Is Job enabled: %s\n\n" % (job_instance.is_enabled())
+        )
+    return "".join(output)

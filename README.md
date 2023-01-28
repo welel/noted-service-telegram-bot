@@ -16,10 +16,9 @@ The NoteD Service Telegram Bot provides the following features:
 ## Commands 
 
 The bot has several commands that can be used to access its features: 
-- `/commit` - Display last commit 
-- `/commits` - Display last 3 commits 
+- `/commit` - Display last commit with management buttons
+- `/commits` - Display N commits with management buttons
 - `/issue` - Create an issue 
-- `/stuboff` - Set the stub off 
 - `/ping` - Ping the website 
 - `/c` - [chat] Speak with AI  
 - `/help` - Bot information  
@@ -30,6 +29,6 @@ The bot has several commands that can be used to access its features:
 
  - `telebot` package for creating a Telegram Bot,  
  - `requests` package for requests to GitHub API,  
- - `api4jenkins` package for requests to Jenkins API,  
+ - `jenkinsapi` package for requests to Jenkins API,  
  - `openai` package for AI chatbot.
  

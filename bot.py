@@ -6,17 +6,20 @@ and get developing information. It provides requests to GitHub and Jenkins.
 
 The bot can help with: 
 1. List last commits, build them to the prodaction, test them before the prodaction. 
-2. Create issues to the project. 
-3. Set off the stub of the website. 
-4. And just talk heart to heart (chatbot). 
+2. Create issues to the project.
+3. Inspect server info.
+4. Inspect Jenkins jobs info.
+5. Ping a website
+6. And just talk heart to heart (OpenAI chatbot). 
 
 Commands: 
 /commit - Display last commit
-/commits - Display last 3 commits
+/commits - Display N commits
 /issue - Create an issue 
-/stuboff - Set the stub off 
-/ping - Ping the website 
-/c - [chat] Speak with AI 
+/ping - Ping the website
+/sinfo - Info about the server
+/jinfo - Info about Jenkins jobs
+/c - [/chat] Speak with AI 
 /help - Bot information  
 
 The bot uses:
@@ -40,13 +43,18 @@ from config import (
     TELEGRAM_CHAT_ID as CHAT_ID,
     CI_JOB,
     CD_JOB,
-    STUB_OFF_JOB,
     BLUE_OCEAN_DASHBOARD_PATH,
     JENKINS_HOST,
+    SERVER_INFO_1,
+    SERVER_INFO_2,
+    SERVER_INFO_3,
+    SERVER_INFO_4,
+    SERVER_INFO_5,
+    SERVER_INFO_6,
 )
 from formatters import format_commit
 from github import get_commits, create_issue as create_issue_api
-from jenkins import build_job
+from jenkins import build_job, get_job_details
 from callback import form_callback_query, get_data
 
 
@@ -60,18 +68,14 @@ TEXT_MESSAGES = {
     "help": str(
         "I am a service bot for the NoteD team.\n\n"
         "I can help with:\n"
-        "1. List last commits\n"
-        "    - build them to the prodaction.\n"
-        "    - test them before the prodaction.\n"
-        "2. Create issues to the project.\n"
-        "3. Set off the stub of the website.\n"
-        "4. And just talk heart to heart.\n\n"
+        "CI\CD management: list commits for buttons; and with following by the command list.\n\n"
         "Commands:\n"
         "/commit - Display last commit\n"
-        "/commits - Display last 3 commits\n"
+        "/commits - Display N commits\n"
         "/issue - Create an issue\n"
-        "/stuboff - Set the stub off\n"
         "/ping - Ping the website\n"
+        "/sinfo - Info about the server\n"
+        "/jinfo - Info about Jenkins jobs\n"
         "/c - [/chat] Speak to AI\n"
         "/help - Bot information"
     ),
@@ -81,6 +85,25 @@ TEXT_MESSAGES = {
         + "used in the NoteD developer group chat.\n\n"
         "Check out our profect!\n"
         "https://welel-noted.site/"
+    ),
+    "server_info": str(
+        "<b>Docker env infra path:</b>\n"
+        "<code>{}</code>\n\n"
+        "<b>Docker env noted path:</b>\n"
+        "<code>{}</code>\n\n"
+        "<b>Connect to DB system user:</b>\n"
+        "<code>{}</code>\n"
+        "<code>{}</code>\n\n"
+        "<b>Connect to DB noted user:</b>\n"
+        "<code>{}</code>\n"
+        "<code>{}</code>".format(
+            SERVER_INFO_1,
+            SERVER_INFO_2,
+            SERVER_INFO_3,
+            SERVER_INFO_4,
+            SERVER_INFO_5,
+            SERVER_INFO_6,
+        )
     ),
 }
 
@@ -125,7 +148,7 @@ def welcome(message):
 @check_group_chat
 def ping_website(message):
     """Checks the status code of the NoteD website."""
-    res = requests.get("https://welel-noted.site", timeout=5)
+    res = requests.get("https://welel-noted.site", timeout=7)
     bot.send_message(message.chat.id, "Status code: " + str(res.status_code))
 
 
@@ -139,8 +162,23 @@ def display_commits(message):
 @bot.message_handler(commands=["commits"])
 @check_group_chat
 def display_commits(message):
-    """Display last 3 commits with inline buttons for info and managment."""
-    display_commits_handler(message, number=3)
+    """Display last N commits with inline buttons for info and managment.
+
+    Telegram usage:
+        /commits 10
+    """
+    num_commits = extract_arguments(message.text)
+    if not num_commits:
+        bot.send_message(message.chat.id, "Usage - /commits [number commits].")
+        return
+
+    try:
+        num_commits = int(num_commits)
+    except ValueError:
+        bot.send_message(message.chat.id, "Invalid value.")
+        return
+
+    display_commits_handler(message, number=num_commits)
 
 
 def display_commits_handler(message, number: int = 1):
@@ -272,26 +310,37 @@ def process_issue_label_step(message, title, body):
         bot.send_message(CHAT_ID, "The issue is not created.")
 
 
-@bot.message_handler(commands=["stuboff"])
-@check_group_chat
-def stub_off(message):
-    """Starts a jenkins job to set off a webite stub."""
-    result = build_job(STUB_OFF_JOB)
-    if result == "build":
-        bot.send_message(
-            message.chat.id, f"Build for setting stub off has requested."
-        )
-    elif result == "building":
-        bot.send_message(message.chat.id, "The job is currently building.")
-
-
 # c: 1 - in EN, 2 - in RU [short from chat]
 @bot.message_handler(commands=["c", "с", "chat"])
 @check_group_chat
 def chatbot(message):
+    """API request to the OpenAI chatbot.
+
+    Telegram usage:
+        /chat [message]
+    """
     text = extract_arguments(message.text)
     ai_answer = get_answer(text)
     bot.send_message(message.chat.id, ai_answer)
+
+
+@bot.message_handler(commands=["sinfo"])
+@check_group_chat
+def send_server_info(message):
+    """Sends information about server data and infrastructure."""
+    image = open("imgs/infra.jpeg", "rb")
+    bot.send_photo(message.chat.id, image)
+    bot.send_message(
+        message.chat.id, TEXT_MESSAGES["server_info"], parse_mode="HTML"
+    )
+
+
+@bot.message_handler(commands=["jinfo"])
+@check_group_chat
+def send_jenkins_jobs_info(message):
+    """Sends information about jenkins jobs."""
+    jobs_info = get_job_details()
+    bot.send_message(message.chat.id, jobs_info)
 
 
 @bot.message_handler(commands=["help"])
