@@ -4,12 +4,16 @@ The module uses the dotenv library to parse a `.env` file and load the
 variables inside into environment variables.
 """
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 
 # Parse a `.env` file and load the variables inside into environment variables
 load_dotenv()
+
+BASE_PATH = Path(__file__).resolve().parent.parent
+RESOURCES_PATH = os.path.join(BASE_PATH, "resources/")
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 # TELEGRAM_CHAT_ID (int)

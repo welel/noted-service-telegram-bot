@@ -350,4 +350,5 @@ def send_help_info(message):
     bot.send_message(message.chat.id, TEXT_MESSAGES["help"])
 
 
-bot.infinity_polling()
+if __name__ == "__main__":
+    bot.infinity_polling()
